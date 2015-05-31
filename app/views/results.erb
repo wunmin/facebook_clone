@@ -1,7 +1,11 @@
 <h1>Results</h1>
 
 <% @rounds.each_with_index do |round, index| %>
-	<%= round.deck.name %>
-	<%= round.guesses.count %>
-	<% @num_correct_by_rounds[index] %>
+	<div class="container">
+	<p>Deck name: <%= round.deck.name %></p>
+	<p>Number of cards: <%= round.guesses.count %></p>
+	<p>Number of correct answers: <%= @num_correct_by_rounds[index] %></p>
+	</div>
 <% end %>
+
+<a href="/logout">Log Out</a>

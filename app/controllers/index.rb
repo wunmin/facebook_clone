@@ -39,13 +39,11 @@ get "/decks/:deck_id/" do
 	# @card = @shuffled_cards[@count]
 	session[:id]
 	@round = Round.create(user_id: session[:id], deck_id: @deck.id)
-	byebug
 	erb :card_1
 end
 
 # Update the Guess table, and redirect to next card
 post "/rounds/:round_id/decks/:deck_id/questions/:question_id" do
-	byebug
 	@guess = Guess.create(user_answer: params[:user_answer], card_id: params[:old_card_id], round_id: params[:round_id].to_i)
 	session[:id]
 	redirect to "/rounds/#{params[:round_id]}/decks/#{params[:deck_id]}/questions/#{params[:question_id].to_i + 1}"
@@ -74,13 +72,14 @@ end
 
 # List the results of all rounds played
 get "/results" do
-	@user = session[:id]
+	@user = User.find(session[:id])
 	@rounds = @user.rounds
 
 	@num_correct_by_rounds = []
+
 	@rounds.each do |round|
 		@num_correct = 0
-		@all_guesses = Guess.where(round_id: params[:round_id])
+		@all_guesses = Guess.where(round_id: round.id)
 
 		@all_guesses.each do |guess|
 			card_answer = Card.find(guess.card_id).answer
@@ -88,9 +87,14 @@ get "/results" do
 				@num_correct += 1
 			end
 		end
-	 @num_correct_by_rounds	<< @num_correct
+		@num_correct_by_rounds	<< @num_correct
 	end
+	
 
 	erb :results
 end
 
+get "/logout" do
+	session.clear
+	redirect to "/"
+end
