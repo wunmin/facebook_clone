@@ -1,5 +1,6 @@
 <div class="container">
   <h1>Status: <%= @status.status_desc %></h1>
+  by <%= @status.user.profile.name %>
 
   <p>Tags:</p>
   <ul>
@@ -9,13 +10,13 @@
   </ul>
 
 
-  <a href="/users/<%= @status.user.id %>/statuses/<%= @status.id %>/edit">Edit status</a>
-
-  <form action="/users/<%= @status.user.id %>/statuses/<%= @status.id %>/like" method="POST">
+  <a href="/users/<%= @user.id %>/statuses/<%= @status.id %>/edit">Edit status</a>
+  <%= byebug %>
+  <form action="/users/<%= @user.id %>/statuses/<%= @status.id %>/like" method="POST">
     <input type="submit" value="Like status">
   </form>
 
-  <form action="/users/<%= @status.user.id %>/statuses/<%= @status.id %>/delete" method="POST">
+  <form action="/users/<%= @user.id %>/statuses/<%= @status.id %>/delete" method="POST">
     <input type="hidden" name="_method" value="DELETE">
     <input type="submit" value="Delete status">
   </form>
@@ -28,7 +29,7 @@
     <% end %>
   </ul>
 
-  <form action="/users/<%= @status.user.id %>/statuses/<%= @status.id %>/comments/add" method="POST">
+  <form action="/users/<%= @user.id %>/statuses/<%= @status.id %>/comments/add" method="POST">
     <input type="text" name="user[comment_desc]">
     <input type="submit" value="Add comment">
   </form>
@@ -37,8 +38,8 @@
   <ul>
   	<% @status.comments.each do |comment| %>
   		<li><%= comment.comment_desc %></li>
-      <li><a href="/users/<%= @status.user.id %>/statuses/<%= @status.id %>/comments/<%= comment.id %>/edit">Edit</a></li>
-      <li><form action="/users/<%= @status.user.id %>/statuses/<%= @status.id %>/comments/<%= comment.id %>/delete" method="POST">
+      <li><a href="/users/<%= @user.id %>/statuses/<%= @status.id %>/comments/<%= comment.id %>/edit">Edit</a></li>
+      <li><form action="/users/<%= @user.id %>/statuses/<%= @status.id %>/comments/<%= comment.id %>/delete" method="POST">
         <input type="hidden" name="_method" value="DELETE">
         <input type="submit" value="Delete comment">
       </form></li>

@@ -52,14 +52,14 @@ get "/users/:user_id/statuses" do
 	erb :statuses
 end
 
-# Add a status for one particular user
+# Add like for one particular user
 post "/users/:user_id/statuses/:status_id/like" do
 	@user = User.find(params[:user_id])
 	@status = Status.find(params[:status_id])
 	if Like.find_by(user_id: @user.id, status_id: @status.id).nil?
 		@new_like = Like.create(user_id: @user.id, status_id: @status.id)
 	end
-	redirect to("/users/#{@user.id}/statuses/#{params[:status_id]}")
+	redirect to("/users/#{params[:user_id]}/statuses/#{params[:status_id]}")
 end
 
 # Add a status for one particular user
@@ -81,6 +81,7 @@ end
 get "/users/:user_id/statuses/:status_id" do
 	@status = Status.find(params[:status_id])
 	@tags = Tag.where(status_id: params[:status_id], user_id: params[:user_id])
+	@user = User.find(params[:user_id])
 	erb :status
 end
 
