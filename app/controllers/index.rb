@@ -48,6 +48,7 @@ end
 # List all statuses for the logged in user
 get "/users/:user_id/statuses" do
 	@user = User.find(params[:user_id])
+	@statuses = Status.all
 	erb :statuses
 end
 
@@ -55,22 +56,24 @@ end
 post "/users/:user_id/statuses/:status_id/like" do
 	@user = User.find(params[:user_id])
 	@status = Status.find(params[:status_id])
-	@new_like = Like.create(user_id: @user.id, status_id: @status.id)
+	if Like.find_by(user_id: @user.id, status_id: @status.id).nil?
+		@new_like = Like.create(user_id: @user.id, status_id: @status.id)
+	end
 	redirect to("/users/#{@user.id}/statuses/#{params[:status_id]}")
 end
 
 # Add a status for one particular user
 post "/users/:user_id/statuses/add" do
 	@user = User.find(params[:user_id])
-	# tags_array = params[:user][:tags].split(", ")
-	# tags_array.each do |tag|
- #      if Tag.find_by_name(tag).nil?
- #        new_tag = Tag.create(params[:tag])
- #        tag_id = new_tag.id
- #      else
- #        tag_id = Tag.find_by_name(tag).id
- #      end
 	@new_status = @user.statuses.create(params[:user])
+	tags_array = params[:tags].split(", ")
+	tags_array.each do |tag|
+        Tag.create(
+        	tag_desc: tag,
+        	user_id: @user.id,
+        	status_id: @new_status.id
+        	)
+ 	end
 	redirect to("/users/#{@user.id}/statuses")
 end
 
@@ -184,6 +187,7 @@ get '/users/:user_id/new' do
 	erb :profile_new
 end
 
+# Display a page with all the user's statuses that match the tag
 get '/users/:user_id/tags/:tag_id' do
 	@tag_desc = Tag.find(params[:tag_id]).tag_desc
 	@tag_objects = Tag.where(tag_desc: @tag_desc, user_id: params[:user_id])
