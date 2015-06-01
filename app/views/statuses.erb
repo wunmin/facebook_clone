@@ -1,0 +1,19 @@
+<div class="container">
+  <h1>Welcome!</h1>
+
+  <a href="/users/<%= @user.id %>/profile">Your profile</a>
+
+  <form action="/users/<%= @user.id %>/statuses/add" method="POST">
+	  <input type="text" name="user[status_desc]">
+    <!-- <input type="tags" name="user[tags]"> -->
+	  <input type="submit" value="Add status">
+  </form>
+
+  <h3>Your previous statuses</h3>
+  <ul>
+  	<% @user.statuses.each do |status| %>
+  		<li><a href="/users/<%= @user.id %>/statuses/<%= status.id %>"><%= status.status_desc %></li></a>
+  	<% end %>
+  </ul>
+  <p><a href="/logout">Logout</a></p>
+</div>

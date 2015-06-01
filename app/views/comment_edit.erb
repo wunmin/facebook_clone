@@ -1,0 +1,10 @@
+<div class="container">
+
+  <form action="/users/<%= params[:user_id] %>/statuses/<%= params[:status_id] %>/comments/<%= params[:comment_id] %>/edit" method="POST">
+    <input type="hidden" name="_method" value="PUT">
+    <label>Comment</label>
+    <input type="text" name="user[comment_desc]" value="<%= @comment.comment_desc %>">
+    <br />
+    <input type="submit" value="Edit status">
+  </form>
+</div>

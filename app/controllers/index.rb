@@ -2,99 +2,208 @@ enable :sessions
 
 get '/' do
 	if !session[:id].nil?
-		@decks = Deck.all
-		erb :decks
+		@user = User.find(session[:id])
+		if !@user.profile.nil?
+			redirect to "/users/#{@user.id}/statuses"
+		else
+			redirect to "/users/#{@user.id}/new"
+		end
 	else
+		User.create
   		erb :index
   	end
 end
 
 # User authentication
 post "/login" do
-	# @auth_result = nil or @user
-	@auth_result = User.authenticate(params[:user][:username], params[:user][:password])
-	if @auth_result == nil
+	# @user will be nill or an User object
+	@user = User.authenticate(params[:user][:username], params[:user][:password])
+	if @user == nil
 		redirect to("/")
 	else
-		session[:id] = @auth_result.id
-		redirect to("/decks")
+		session[:id] = @user.id
+		redirect to("/users/#{@user.id}/statuses")
 	end
 end
 
-# List all the decks
-get "/decks" do
-	@decks = Deck.all
-	erb :decks
-	p session[:id]
-end
+# Create a new user
+post "/new_user" do
+	# @auth_result = nil or @user
+	@new_user = User.create(params[:new_user])
+	@new_profile = Profile.create(
+		name: params[:profile][:name],
+		email: params[:profile][:email],
+		dob: params[:profile][:dob],
+		user_id: @new_user.id
+		)
 
-# First card
-get "/decks/:deck_id/" do
-	@deck = Deck.find(params[:deck_id])
-	@card = @deck.cards.sample
-
-	@count = 0
-	# @deck = Deck.find(params[:deck_id])
-	# @shuffled_cards = @deck.cards.shuffle
-	# @card = @shuffled_cards[@count]
-	session[:id]
-	@round = Round.create(user_id: session[:id], deck_id: @deck.id)
-	erb :card_1
-end
-
-# Update the Guess table, and redirect to next card
-post "/rounds/:round_id/decks/:deck_id/questions/:question_id" do
-	@guess = Guess.create(user_answer: params[:user_answer], card_id: params[:old_card_id], round_id: params[:round_id].to_i)
-	session[:id]
-	redirect to "/rounds/#{params[:round_id]}/decks/#{params[:deck_id]}/questions/#{params[:question_id].to_i + 1}"
-end
-
-# Second cards onwards, can show card_id
-get "/rounds/:round_id/decks/:deck_id/questions/:question_id" do
-	session[:id]
-	@old_card_id = Guess.last.card_id
-	@old_card = Card.find(@old_card_id)
-
-	@old_guess = Guess.where(card_id: @old_card_id, round_id: params[:round_id].to_i)
-	@deck = Deck.find(params[:deck_id])
-	if params[:question_id].to_i > @deck.cards.count
-		redirect to "/results"
+	if @new_user == nil
+		erb :index
 	else
-		@round = params[:round_id]
-		# @user = @round.user
-		@deck = params[:deck_id]
-		@new_card = Card.sample_card(@round)
-		@question_id = params[:question_id].to_i
-		erb :card
+		session[:id] = @new_user.id
+		redirect to("/users/#{@new_user.id}/statuses")
 	end
 end
 
-
-# List the results of all rounds played
-get "/results" do
-	@user = User.find(session[:id])
-	@rounds = @user.rounds
-
-	@num_correct_by_rounds = []
-
-	@rounds.each do |round|
-		@num_correct = 0
-		@all_guesses = Guess.where(round_id: round.id)
-
-		@all_guesses.each do |guess|
-			card_answer = Card.find(guess.card_id).answer
-			if guess.user_answer == card_answer
-				@num_correct += 1
-			end
-		end
-		@num_correct_by_rounds	<< @num_correct
-	end
-	
-
-	erb :results
+# List all statuses for the logged in user
+get "/users/:user_id/statuses" do
+	@user = User.find(params[:user_id])
+	erb :statuses
 end
 
+# Add a status for one particular user
+post "/users/:user_id/statuses/:status_id/like" do
+	@user = User.find(params[:user_id])
+	@status = Status.find(params[:status_id])
+	@new_like = Like.create(user_id: @user.id, status_id: @status.id)
+	redirect to("/users/#{@user.id}/statuses/#{params[:status_id]}")
+end
+
+# Add a status for one particular user
+post "/users/:user_id/statuses/add" do
+	@user = User.find(params[:user_id])
+	# tags_array = params[:user][:tags].split(", ")
+	# tags_array.each do |tag|
+ #      if Tag.find_by_name(tag).nil?
+ #        new_tag = Tag.create(params[:tag])
+ #        tag_id = new_tag.id
+ #      else
+ #        tag_id = Tag.find_by_name(tag).id
+ #      end
+	@new_status = @user.statuses.create(params[:user])
+	redirect to("/users/#{@user.id}/statuses")
+end
+
+# Get page for one particular status
+get "/users/:user_id/statuses/:status_id" do
+	@status = Status.find(params[:status_id])
+	@tags = Tag.where(status_id: params[:status_id], user_id: params[:user_id])
+	erb :status
+end
+
+# Delete one particular status
+delete '/users/:user_id/statuses/:status_id/delete' do
+	@status = Status.find(params[:status_id])
+	@status.destroy
+    redirect to "/users/#{params[:user_id]}/statuses"
+end
+
+# Display page to edit one particular status
+get '/users/:user_id/statuses/:status_id/edit' do
+	@status = Status.find(params[:status_id])
+	erb :status_edit
+  	# redirect to "/users/#{params[:user_id]}/statuses/#{params[:status_id]}"
+end
+
+# Edit one particular status
+put '/users/:user_id/statuses/:status_id/edit' do
+  @status = Status.find(params[:status_id])
+  @status.update(params[:user])
+  redirect to "/users/#{params[:user_id]}/statuses/#{params[:status_id]}"
+end
+
+# Delete a comment for one particular status
+delete '/users/:user_id/statuses/:status_id/comments/:comment_id/delete' do
+	@comment = Comment.find(params[:comment_id])
+	@comment.destroy
+    redirect to "/users/#{params[:user_id]}/statuses/#{params[:status_id]}"
+end
+
+# Add a comment for one particular status
+post "/users/:user_id/statuses/:status_id/comments/add" do
+	# @user = User.find(params[:user_id]) 
+	@status = Status.find(params[:status_id])
+	@new_comment = @status.comments.create(params[:user])
+	redirect to("/users/#{params[:user_id]}/statuses/#{params[:status_id]}")
+end
+
+# Display page to edit one particular comment
+get '/users/:user_id/statuses/:status_id/comments/:comment_id/edit' do
+	@comment = Comment.find(params[:comment_id])
+	erb :comment_edit
+  	# redirect to "/users/#{params[:user_id]}/statuses/#{params[:status_id]}"
+end
+
+# Edit one particular comment for a status
+put '/users/:user_id/statuses/:status_id/comments/:comment_id/edit' do
+  @comment = Comment.find(params[:comment_id])
+  @comment.update(params[:user])
+  redirect to "/users/#{params[:user_id]}/statuses/#{params[:status_id]}"
+end
+
+# Logout and clear session
 get "/logout" do
 	session.clear
 	redirect to "/"
 end
+
+# Display user profile
+get "/users/:user_id/profile" do
+	@user = User.find(params[:user_id])
+	erb :profile
+end
+
+# Display page to edit user profile
+get "/users/:user_id/edit" do
+	@profile = Profile.find_by_user_id(params[:user_id])
+	erb :profile_edit
+end
+
+# Edit one particular user's profile
+put '/users/:user_id/edit' do
+	@profile = Profile.find_by_user_id(params[:user_id])
+	@profile.update(
+		name: params[:profile][:name],
+		email: params[:profile][:email],
+		dob: params[:profile][:dob],
+		user_id: params[:user_id]
+		)
+	redirect to "/users/#{params[:user_id]}/profile"
+end
+
+# Delete user profile
+delete '/users/:user_id/delete' do
+	@profile = Profile.find_by_user_id(params[:user_id])
+	@profile.destroy
+    erb :profile_new
+end
+
+# Create one particular user's new profile
+post '/users/:user_id/new' do
+	@new_profile = Profile.create(
+		name: params[:profile][:name],
+		email: params[:profile][:email],
+		dob: params[:profile][:dob],
+		user_id: params[:user_id]
+		)
+	redirect to "/users/#{params[:user_id]}/profile"
+end
+
+# Display opage to create new profile
+get '/users/:user_id/new' do
+	erb :profile_new
+end
+
+get '/users/:user_id/tags/:tag_id' do
+	@tag_desc = Tag.find(params[:tag_id]).tag_desc
+	@tag_objects = Tag.where(tag_desc: @tag_desc, user_id: params[:user_id])
+	@statuses = []
+	@tag_objects.each do |tag_object|
+		new_status = Status.find(tag_object.status_id)
+		@statuses << new_status
+	end
+	erb :tag_statuses
+end
+
+
+
+
+
+
+
+
+
+
+
+
+

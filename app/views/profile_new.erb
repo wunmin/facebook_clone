@@ -1,0 +1,16 @@
+<div class="container">
+
+  <form action="/users/<%= params[:user_id] %>/new" method="POST">
+    <label>Name</label>
+    <input type="text" name="profile[name]">
+    <br />
+    <label>Email</label>
+    <input type="text" name="profile[email]">
+    <br />
+    <label>Date of birth</label>
+    <input type="text" name="profile[dob]">
+    <br />
+    <input type="submit" value="Create profile">
+  </form>
+
+</div>

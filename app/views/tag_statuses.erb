@@ -1,0 +1,10 @@
+<div class="container">
+  <h1>Statuses for tag: <%= @tag_desc %></h1>
+
+  <h3>All statuses with above tag</h3>
+  <ul>
+    <% @statuses.each do |status| %>
+      <li><%= status.status_desc %></li>
+    <% end %>
+  </ul>
+</div>

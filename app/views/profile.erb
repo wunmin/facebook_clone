@@ -1,0 +1,16 @@
+<div class="container">
+  <h1>Welcome, <%= @user.profile.name %></h1>
+
+  <p>Name: <%= @user.profile.name %></p>
+  <p>Email: <%= @user.profile.email %></p>
+  <p>Date of birth: <%= @user.profile.dob %></p>
+
+  <a href="/users/<%= @user.id %>/edit">Edit profile</a>
+
+  <form action="/users/<%= @user.id %>/delete" method="POST">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="submit" value="Delete profile">
+  </form>
+
+  <a href="/users/<%= @user.id %>/statuses">Your statuses</a>
+</div>

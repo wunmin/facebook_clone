@@ -1,0 +1,17 @@
+<div class="container">
+
+  <form action="/users/<%= params[:user_id] %>/edit" method="POST">
+    <input type="hidden" name="_method" value="PUT">
+    <label>Name</label>
+    <input type="text" name="profile[name]" value="<%= @profile.name %>">
+    <br />
+    <label>Email</label>
+    <input type="text" name="profile[email]" value="<%= @profile.email %>">
+    <br />
+    <label>Date of birth</label>
+    <input type="text" name="profile[dob]" value="<%= @profile.dob %>">
+    <br />
+    <input type="submit" value="Edit profile">
+  </form>
+
+</div>
